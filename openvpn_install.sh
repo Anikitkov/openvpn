@@ -67,7 +67,7 @@ echo $?
 sysctl -p
 i=$(ls /sys/class/net |grep enp) #Retrieve the interface number
 
-sudo ~/iptables.sh $i udp 1194
+sudo ~/iptables.sh i udp 1194
 
 echo $?
 
