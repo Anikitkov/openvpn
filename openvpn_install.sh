@@ -44,7 +44,7 @@ sudo cp /usr/share/doc/openvpn/examples/sample-config-files/server.conf /etc/ope
 echo $?
 sudo cp ~/pki/private/server.key /etc/openvpn/server/
 echo $?
-chmod 777 /etc/openvpn/server/server.conf
+sudo chmod 777 /etc/openvpn/server/server.conf
 
 sudo sed -i 's/.*tls-auth ta.key 0.*/tls-crypt ta.key/' /etc/openvpn/server/server.conf
 echo $?
