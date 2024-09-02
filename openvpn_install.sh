@@ -44,7 +44,7 @@ sudo cp /usr/share/doc/openvpn/examples/sample-config-files/server.conf /etc/ope
 echo $?
 sudo cp ~/pki/private/server.key /etc/openvpn/server/
 echo $?
-sudo cp /etc/openvpn/server/server.conf server.bak
+sudo cp /etc/openvpn/server/server.conf server.bak #backup server config
 sudo chmod 777 /etc/openvpn/server/server.conf
 
 sudo sed -i 's/.*tls-auth ta.key 0.*/tls-crypt ta.key/' /etc/openvpn/server/server.conf
@@ -52,9 +52,9 @@ echo $?
 
 sudo sed -i 's/.*cipher AES-256-CBC.*/cipher AES-256-GCM/' /etc/openvpn/server/server.conf
 echo $?
+echo "auth SHA256" >> /etc/openvpn/server/server.conf
 
-
-sudo sed -i 's/.*dh.*/;dh/' /etc/openvpn/server/server.conf
+sudo sed -i 's/.*dh dh2048.pem.*/;dh dh2048.pem/' /etc/openvpn/server/server.conf
 echo "dh none" >> /etc/openvpn/server/server.conf
 echo $?
 
@@ -66,38 +66,44 @@ echo $?
 
 sudo sed -i 's/.*#net.ipv4.ip_forward=1.*/net.ipv4.ip_forward=1/' /etc/sysctl.conf
 echo $?
-sysctl -p
-i=$(ls /sys/class/net |grep enp) #Retrieve the interface number
+sudo sysctl -p
+i=$(ls /sys/class/net |grep en) #Retrieve the interface number
 
-sudo ~/iptables.sh i udp 1194
-
+sudo ~/iptables.sh $i udp 1194
+sudo systemctl -f enable openvpn-server@server.service
 echo $?
 
-
+cd ~
 mkdir -p ~/clients/files
 
 sudo cp /usr/share/doc/openvpn/examples/sample-config-files/client.conf ~/clients/base.conf
+sudo cp ~/clients/base.conf base.bak #backup client config
 echo $?
-ip=$(hostname -I)
-sed -i 's/.*remote my-server 1194.*/remote $ip 1194/' ~/clients/base.conf
+ip=$(hostname -I | awk '{print $1}')
 
-sed -i 's/.*user no.*/user nobody/' ~/clients/base.conf
-sed -i 's/.*group no.*/group nogroup/' ~/clients/base.conf
+sed -i 's/.*remote my-server-1 1194.*/;remote my-server-1 1194/' ~/clients/base.conf
+echo "remote $ip 1194" >> ~/clients/base.conf
 
-sed -i 's/.*ca ca.crt.*/;ca ca.crt./' ~/clients/base.conf
-sed -i 's/.*cert client.crt.*/;cert client.crt./' ~/clients/base.conf
-sed -i 's/.*key client.key.*/;key client.key./' ~/clients/base.conf
-sed -i 's/.*tls-auth ta.key 1.*/;tls-crypt ta.key 1./' ~/clients/base.conf
-sed -i 's/.*cipher.*/cipher AES-256-GCM./' ~/clients/base.conf
+sed -i 's/.*;user nobody.*/user nobody/' ~/clients/base.conf
+sed -i 's/.*;group nobody.*/group nogroup/' ~/clients/base.conf
+
+sed -i 's/.*ca ca.crt.*/;ca ca.crt/' ~/clients/base.conf
+sed -i 's/.*cert client.crt.*/;cert client.crt/' ~/clients/base.conf
+sed -i 's/.*key client.key.*/;key client.key/' ~/clients/base.conf
+sed -i 's/.*tls-auth ta.key 1.*/tls-crypt ta.key 1/' ~/clients/base.conf
+sed -i 's/.*cipher AES-256-CBC.*/cipher AES-256-GCM/' ~/clients/base.conf
 echo "auth SHA256" >> ~/clients/base.conf
 echo "key-direction 1" >> ~/clients/base.conf
+sudo cp ~/openvpn/make-config.sh clients
+chmod +x clients/make-config.sh
+
 #chmod 700 ~/clients/make_config.sh
-sudo cp ~/pki/ca.crt ~/client/keys
-sudo chown $USER:$USER ~/client/keys/ca.crt
-~/make_config.sh /client-1
+sudo cp ~/pki/ca.crt ~/clients/keys/
+sudo chown $USER:$USER ~/client/keys/*
+~/make_config.sh client-1
 
 echo $?
-
+ >>
 
 
 
