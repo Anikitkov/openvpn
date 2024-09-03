@@ -5,84 +5,46 @@ chmod +x openvpn/*
 
 cp 
 sudo apt-get install -y openvpn 
-echo $?
 ~/easy-rsa/easyrsa gen-req server nopass
  
 ~/easy-rsa/easyrsa sign-req server server
-echo $?
 sudo cp pki/issued/server.crt /etc/openvpn/server/
-echo $?
-
 sudo cp pki/ca.crt /etc/openvpn/server/
-echo $?
-
 /usr/sbin/openvpn --genkey --secret ta.key
-echo $?
-
 sudo cp ta.key /etc/openvpn/server
-echo $?
-
 mkdir -p ~/clients/keys
-echo $?
-
 #chmod -R 700 ~/clients 
 #Нет прав на папки для не рута
-echo $?
-
 #sudo ~/easy-rsa/easyrsa gen-req client-1 nopass
 ~/easy-rsa/easyrsa gen-req client-1 nopass
 
-echo $?
 sudo cp pki/private/client-1.key ./clients/keys/
-echo $?
 ~/easy-rsa/easyrsa sign-req client client-1
-echo $?
 sudo cp ta.key ~/clients/keys/
-echo $?
 sudo cp pki/issued/client-1.crt ~/clients/keys/
-echo $?
 #chown $USER:$USER ~/clients/keys/*
-echo $?
-
 sudo cp /usr/share/doc/openvpn/examples/sample-config-files/server.conf /etc/openvpn/server/
-echo $?
 sudo cp ~/pki/private/server.key /etc/openvpn/server/
-echo $?
 sudo cp /etc/openvpn/server/server.conf server.bak #backup server config
 sudo chmod 777 /etc/openvpn/server/server.conf
-
 sudo sed -i 's/.*tls-auth ta.key 0.*/tls-crypt ta.key/' /etc/openvpn/server/server.conf
-echo $?
-
 sudo sed -i 's/.*cipher AES-256-CBC.*/cipher AES-256-GCM/' /etc/openvpn/server/server.conf
-echo $?
 echo "auth SHA256" >> /etc/openvpn/server/server.conf
-
 sudo sed -i 's/.*dh dh2048.pem.*/;dh dh2048.pem/' /etc/openvpn/server/server.conf
 echo "dh none" >> /etc/openvpn/server/server.conf
-echo $?
-
 sudo sed -i 's/.*;user nobody.*/user nobody/' /etc/openvpn/server/server.conf
-echo $?
-
 sudo sed -i 's/.*;group no.*/group nogroup/' /etc/openvpn/server/server.conf
-echo $?
-
 sudo sed -i 's/.*#net.ipv4.ip_forward=1.*/net.ipv4.ip_forward=1/' /etc/sysctl.conf
-echo $?
 sudo sysctl -p
 i=$(ls /sys/class/net |grep en) #Retrieve the interface number
-
 sudo ~/openvpn/iptables.sh $i udp 1194 
 sudo systemctl -f enable openvpn-server@server.service
 sudo systemctl start openvpn-server@server.service
-echo $? 
 
 mkdir -p ~/clients/files
 
 sudo cp /usr/share/doc/openvpn/examples/sample-config-files/client.conf ~/clients/base.conf
 sudo cp ~/clients/base.conf base.bak #backup client config
-echo $?
 ip=$(hostname -I | awk '{print $1}')
 
 sed -i 's/.*remote my-server-1 1194.*/;remote my-server-1 1194/' ~/clients/base.conf
