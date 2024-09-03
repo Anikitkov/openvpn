@@ -1,5 +1,9 @@
 #!/bin/bash
 
+cd ~
+chmod +x openvpn/*
+
+cp 
 sudo apt-get install -y openvpn 
 echo $?
 ~/easy-rsa/easyrsa gen-req server nopass
@@ -69,11 +73,11 @@ echo $?
 sudo sysctl -p
 i=$(ls /sys/class/net |grep en) #Retrieve the interface number
 
-sudo ~/iptables.sh $i udp 1194
+sudo ~/openvpn/iptables.sh $i udp 1194 
 sudo systemctl -f enable openvpn-server@server.service
-echo $?
+sudo systemctl start openvpn-server@server.service
+echo $? 
 
-cd ~
 mkdir -p ~/clients/files
 
 sudo cp /usr/share/doc/openvpn/examples/sample-config-files/client.conf ~/clients/base.conf
@@ -90,20 +94,19 @@ sed -i 's/.*;group nobody.*/group nogroup/' ~/clients/base.conf
 sed -i 's/.*ca ca.crt.*/;ca ca.crt/' ~/clients/base.conf
 sed -i 's/.*cert client.crt.*/;cert client.crt/' ~/clients/base.conf
 sed -i 's/.*key client.key.*/;key client.key/' ~/clients/base.conf
-sed -i 's/.*tls-auth ta.key 1.*/tls-crypt ta.key 1/' ~/clients/base.conf
+sed -i 's/.*tls-auth ta.key 1.*/;tls-crypt ta.key 1/' ~/clients/base.conf
 sed -i 's/.*cipher AES-256-CBC.*/cipher AES-256-GCM/' ~/clients/base.conf
 echo "auth SHA256" >> ~/clients/base.conf
 echo "key-direction 1" >> ~/clients/base.conf
 sudo cp ~/openvpn/make-config.sh clients
-chmod +x clients/make-config.sh
+#chmod +x clients/make-config.sh
 
 #chmod 700 ~/clients/make_config.sh
 sudo cp ~/pki/ca.crt ~/clients/keys/
-sudo chown $USER:$USER ~/client/keys/*
-~/make_config.sh client-1
+sudo chown $USER:$USER ~/clients/keys/*
+~/clients/make-config.sh client-1
 
-echo $?
- >>
+
 
 
 
