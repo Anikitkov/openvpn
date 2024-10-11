@@ -35,14 +35,30 @@ fi
 mkdir -p /home/$USER/clients/keys
 
 sudo cp -r /home/$USER/ca.crt /etc/openvpn/server
+echo $?
 sudo cp -r /home/$USER/ca.key /etc/openvpn/server
+
+echo $?
+
 sudo cp -r /home/$USER/server.crt /etc/openvpn/server
+
+echo $?
+
 sudo cp -r /home/$USER/server.key /etc/openvpn/server
 
+echo $?
+
+
 cp -r /home/$USER/ca.crt /home/$USER/clients/keys
+echo $?
 cp -r /home/$USER/ca.key /home/$USER/clients/keys
+echo $?
+
 cp -r /home/$USER/client-1.crt /home/$USER/clients/keys
+echo $?
+
 cp -r /home/$USER/client-1.key /home/$USER/clients/keys
+echo $?
 
 
 #cp -r /home/$USER/*.crt /etc/certificates/server 
@@ -61,20 +77,23 @@ sudo cp /usr/share/doc/openvpn/examples/sample-config-files/server.conf /etc/ope
 #sudo cp /etc/openvpn/server/client-1.crt ~/clients/keys
 #chown $USER:$USER /home/$USER/clients/keys/ca.crt 
 sudo cp /home/$USER/ta.key /etc/openvpn/server
-cp /home/$USER/ta.key /home/$USER/certificates/clients/keys
+cp /home/$USER/ta.key /home/$USER/clients/keys
+echo $?
 #sudo cp server.key /etc/openvpn/server
 #sudo cp client-1.key ~/clients/keys/
 sudo cp /etc/openvpn/server/server.conf /etc/openvpn/server/server.bak #backup server config
 sudo chown $USER:$USER /etc/openvpn/server/server.conf
 #sudo chmod 777 /etc/openvpn/server/server.conf
 # change config auto
-sed -i 's/.*tls-auth ta.key 0.*/tls-crypt ta.key/' /etc/openvpn/server/server.conf
-sed -i 's/.*cipher AES-256-CBC.*/cipher AES-256-GCM/' /etc/openvpn/server/server.conf
+sudo sed -i 's/.*tls-auth ta.key 0.*/tls-crypt ta.key/' /etc/openvpn/server/server.conf
+sudo sed -i 's/.*cipher AES-256-CBC.*/cipher AES-256-GCM/' /etc/openvpn/server/server.conf
 echo"" >> /etc/openvpn/server/server.conf
-echo "auth SHA256" >> /etc/openvpn/server/server.conf #Накладывается на предыдущую строку sed -i 's/.*dh dh2048.pem.*/;dh dh2048.pem/' /etc/openvpn/server/server.conf
-echo "dh none" >> /etc/openvpn/server/server.conf sed -i 's/.*;user nobody.*/user nobody/' /etc/openvpn/server/server.conf
-sed -i 's/.*;group no.*/group nogroup/' /etc/openvpn/server/server.conf
-sed -i 's/.*#net.ipv4.ip_forward=1.*/net.ipv4.ip_forward=1/' /etc/sysctl.conf 
+echo "auth SHA256" >> /etc/openvpn/server/server.conf #Накладывается на предыдущую строку 
+sudo sed -i 's/.*dh dh2048.pem.*/;dh dh2048.pem/' /etc/openvpn/server/server.conf
+echo "dh none" >> /etc/openvpn/server/server.conf 
+sudo sed -i 's/.*;user nobody.*/user nobody/' /etc/openvpn/server/server.conf
+sudo sed -i 's/.*;group no.*/group nogroup/' /etc/openvpn/server/server.conf
+sudo sed -i 's/.*#net.ipv4.ip_forward=1.*/net.ipv4.ip_forward=1/' /etc/sysctl.conf 
 sudo sysctl -p
 i=$(ls /sys/class/net |grep en) #Retrieve the interface number
 sudo /home/$USER/openvpn/iptables.sh $i udp 1194 
